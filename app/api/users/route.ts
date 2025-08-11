@@ -1,21 +1,20 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
 
-// GET all notes (with tags)
+// GET all users
 export async function GET() {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("notes")
-    .select("*, note_tags(tag_id, tags(name))");
+  const { data, error } = await supabase.from("users").select("*");
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json(data);
 }
 
-// POST new note
+// POST new user (manual insert — usually handled by Supabase Auth trigger)
 export async function POST(req: Request) {
   const supabase = await createClient();
   const body = await req.json();
-  const { data, error } = await supabase.from("notes").insert(body).select();
+  const { data, error } = await supabase.from("users").insert(body).select();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json(data[0]);
 }
