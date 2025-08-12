@@ -13,6 +13,7 @@ export async function GET(req: NextRequest, context: { params: { id: string } })
         .select('*')
         .eq('id', id)
         .single();
+       
 
     if (error) {
         return NextResponse.json({ error: error.message }, { status: 404 });
