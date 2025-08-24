@@ -1,24 +1,25 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    console.log('Searching for note:', params.id, 'user:', session.user.id);
-    
+    console.log('Searching for note:', id, 'user:', session.user.id);
+
     const { data, error } = await supabaseAdmin
       .from("notes")
       .select("*")
-      .eq("id", params.id)
+      .eq("id", id)
       .eq("user_id", session.user.id)
       .single();
 
@@ -33,7 +34,8 @@ export async function GET(
     }
 
     return NextResponse.json(data);
-  } catch (error) {
+  } catch (err) {
+    console.error('Error fetching note:', err);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -43,9 +45,10 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -56,7 +59,7 @@ export async function PUT(
     const { data, error } = await supabaseAdmin
       .from("notes")
       .update(body)
-      .eq("id", params.id)
+      .eq("id", id)
       .eq("user_id", session.user.id)
       .select()
       .single();
@@ -66,7 +69,8 @@ export async function PUT(
     }
 
     return NextResponse.json(data);
-  } catch (error) {
+  } catch (err) {
+    console.error('Error updating note:', err);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -76,9 +80,10 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -87,7 +92,7 @@ export async function DELETE(
     const { error } = await supabaseAdmin
       .from("notes")
       .delete()
-      .eq("id", params.id)
+      .eq("id", id)
       .eq("user_id", session.user.id);
 
     if (error) {
@@ -95,7 +100,8 @@ export async function DELETE(
     }
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (err) {
+    console.error('Error deleting note:', err);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

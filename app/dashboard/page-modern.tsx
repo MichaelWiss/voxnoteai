@@ -7,15 +7,29 @@ import {
   Mic, 
   Video, 
   Search, 
+  Filter, 
+  Calendar, 
   Clock, 
   FileText, 
+  Star, 
+  Trash2, 
+  Share2,
+  Play,
+  Pause,
   Volume2,
+  Download,
   Eye,
+  Tag,
   Zap,
+  TrendingUp,
+  User,
+  Settings,
+  Plus,
   Grid,
   List,
-  Sparkles,
-  X
+  ChevronDown,
+  MoreHorizontal,
+  Sparkles
 } from 'lucide-react';
 
 interface Note {
@@ -24,13 +38,11 @@ interface Note {
   type: "text" | "audio" | "video";
   transcript: string;
   summary?: string;
-  tags: (string | { name: string })[];
+  tags: string[];
   created_at: string;
   duration?: string;
   aiConfidence?: number;
   hasAction?: boolean;
-  file_url?: string;
-  media_url?: string;
 }
 
 export default function ModernDashboard() {
@@ -76,7 +88,7 @@ export default function ModernDashboard() {
       const response = await fetch("/api/notes");
       if (response.ok) {
         const data = await response.json();
-        setNotes(data.map((note: Note) => ({
+        setNotes(data.map((note: any) => ({
           ...note,
           duration: "5:30", // Mock duration
           aiConfidence: Math.floor(Math.random() * 10) + 90, // Mock confidence
@@ -216,84 +228,120 @@ export default function ModernDashboard() {
     }
   };
 
-function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string | number }) {
-  return (
-    <div className="bg-white border-r border-b p-8 hover:opacity-90 transition-opacity" style={{ borderColor: '#acaca9' }}>
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium mb-2" style={{ color: '#545268' }}>{label}</p>
-          <p className="text-3xl font-bold" style={{ color: '#333328' }}>{value}</p>
+  const StatCard = ({ icon: Icon, label, value, trend, color }: {
+    icon: any;
+    label: string;
+    value: string | number;
+    trend?: string;
+    color: string;
+  }) => (
+    <div className="bg-white rounded-xl border border-gray-100 p-6 hover:shadow-md transition-all duration-200">
+      <div className="flex items-center justify-between mb-4">
+        <div className={`w-12 h-12 rounded-lg ${color} flex items-center justify-center`}>
+          <Icon className="w-6 h-6 text-white" />
         </div>
-        <div className="flex-shrink-0">
-          <Icon className="w-8 h-8" style={{ color: '#fa6147' }} />
-        </div>
+        {trend && (
+          <div className="flex items-center text-green-600 text-sm font-medium">
+            <TrendingUp className="w-4 h-4 mr-1" />
+            {trend}
+          </div>
+        )}
       </div>
+      <div className="text-2xl font-bold text-gray-900 mb-1">{value}</div>
+      <div className="text-gray-600 text-sm">{label}</div>
     </div>
   );
-}  const NoteCard = ({ note }: { note: Note }) => (
-    <div className="bg-white border hover:opacity-90 transition-opacity group" style={{ borderColor: '#acaca9' }}>
-      <div className="p-8">
-        <div className="flex items-start justify-between mb-6">
-          <div className="flex items-center space-x-4">
-            <div className="w-8 h-8 flex items-center justify-center" style={{ backgroundColor: '#333328' }}>
-              {note.type === 'video' ? <Video className="w-4 h-4" style={{ color: '#e5e5df' }} /> : 
-               note.type === 'audio' ? <Volume2 className="w-4 h-4" style={{ color: '#e5e5df' }} /> : <FileText className="w-4 h-4" style={{ color: '#e5e5df' }} />}
+
+  const NoteCard = ({ note }: { note: Note }) => (
+    <div className="bg-white rounded-xl border border-gray-100 hover:shadow-lg transition-all duration-300 overflow-hidden group">
+      <div className="p-6">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-center space-x-3">
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+              note.type === 'video' ? 'bg-purple-100 text-purple-600' : 
+              note.type === 'audio' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+            }`}>
+              {note.type === 'video' ? <Video className="w-5 h-5" /> : 
+               note.type === 'audio' ? <Volume2 className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
             </div>
             <div>
-              <h3 className="font-normal group-hover:opacity-80 transition-opacity" style={{ color: '#333328' }}>{note.title}</h3>
-              <div className="flex items-center space-x-2 text-xs mt-1" style={{ color: '#545268' }}>
-                <Clock className="w-3 h-3" />
+              <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                {note.title}
+              </h3>
+              <div className="flex items-center space-x-2 text-sm text-gray-500 mt-1">
+                <Clock className="w-4 h-4" />
                 <span>{note.duration || "5:30"}</span>
                 <span>•</span>
                 <span>{new Date(note.created_at).toLocaleDateString()}</span>
               </div>
             </div>
           </div>
-          <button
-            onClick={() => setSelectedNote(note)}
-            className="opacity-0 group-hover:opacity-100 p-2 hover:opacity-80 transition-all"
-          >
-            <Eye className="w-4 h-4" style={{ color: '#545268' }} />
-          </button>
+          <div className="flex items-center space-x-2">
+            <button className="opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-gray-100 rounded-lg">
+              <Share2 className="w-4 h-4 text-gray-600" />
+            </button>
+            <button className="opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-gray-100 rounded-lg">
+              <MoreHorizontal className="w-4 h-4 text-gray-600" />
+            </button>
+          </div>
         </div>
 
-        {/* Content Preview */}
-        <div className="mb-6">
-          <p className="text-sm leading-relaxed line-clamp-2" style={{ color: '#545268' }}>
-            {note.summary || note.transcript.substring(0, 120) + (note.transcript.length > 120 ? "..." : "")}
-          </p>
-        </div>
+        {/* AI Summary */}
+        {note.summary && (
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 mb-4">
+            <div className="flex items-center mb-2">
+              <Sparkles className="w-4 h-4 text-blue-600 mr-2" />
+              <span className="text-sm font-medium text-blue-900">AI Summary</span>
+              <div className="ml-auto text-xs text-blue-700 bg-blue-100 px-2 py-1 rounded">
+                {note.aiConfidence || 95}% confident
+              </div>
+            </div>
+            <p className="text-gray-700 text-sm leading-relaxed">{note.summary}</p>
+          </div>
+        )}
 
         {/* Tags */}
         {note.tags && note.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-6">
-            {note.tags.slice(0, 3).map((tag, index) => (
-              <span
+          <div className="flex flex-wrap gap-2 mb-4">
+            {note.tags.map((tag, index) => (
+              <span 
                 key={index}
-                className="px-2 py-1 bg-neutral-100 text-neutral-600 text-xs font-normal"
+                className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium hover:bg-gray-200 transition-colors cursor-pointer"
               >
-                {typeof tag === 'string' ? tag : tag.name}
+                #{tag}
               </span>
             ))}
-            {note.tags.length > 3 && (
-              <span className="px-2 py-1 bg-neutral-100 text-neutral-600 text-xs font-normal">
-                +{note.tags.length - 3}
-              </span>
-            )}
+          </div>
+        )}
+
+        {/* Action Items */}
+        {note.hasAction && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+            <div className="flex items-center text-amber-800">
+              <Zap className="w-4 h-4 mr-2" />
+              <span className="text-sm font-medium">Action Items Detected</span>
+            </div>
           </div>
         )}
 
         {/* Actions */}
-        <div className="flex items-center justify-between pt-6 border-t border-neutral-100">
-          <button 
-            onClick={() => setSelectedNote(note)}
-            className="text-xs font-normal text-black hover:text-neutral-700 transition-colors"
-          >
-            View Details
-          </button>
-          <div className="flex items-center space-x-1 text-neutral-400">
-            <Eye className="w-3 h-3" />
-            <span className="text-xs">{note.transcript.split(' ').length} words</span>
+        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+          <div className="flex items-center space-x-3">
+            <button 
+              onClick={() => setSelectedNote(note)}
+              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Eye className="w-4 h-4" />
+              <span>View</span>
+            </button>
+            <button className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+              <FileText className="w-4 h-4" />
+              <span>Transcript</span>
+            </button>
+          </div>
+          <div className="flex items-center space-x-2 text-gray-500">
+            <Eye className="w-4 h-4" />
+            <span className="text-sm">{note.transcript.split(' ').length} words</span>
           </div>
         </div>
       </div>
@@ -301,52 +349,44 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
   );
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#e5e5df' }}>
-      {/* Header - Exact Sunrise Robotics style */}
-      <header className="bg-white border-b" style={{ borderColor: '#acaca9' }}>
-        <div className="max-w-7xl mx-auto px-6 py-8">
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-8">
+            <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-3">
-                <div className="w-6 h-6 flex items-center justify-center" style={{ backgroundColor: '#333328' }}>
-                  <Mic className="w-4 h-4" style={{ color: '#e5e5df' }} />
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                  <Mic className="w-6 h-6 text-white" />
                 </div>
-                <h1 className="text-xl font-normal tracking-normal" style={{ color: '#333328' }}>VoxNote</h1>
+                <h1 className="text-2xl font-bold text-gray-900">VoxNote AI</h1>
               </div>
               <div className="hidden md:block">
-                <div className="text-sm font-normal" style={{ color: '#545268' }}>
-                  Welcome back, <span style={{ color: '#333328' }}>{session?.user?.name || "User"}</span>
+                <div className="flex items-center space-x-1 text-sm text-gray-600">
+                  <span>Welcome back,</span>
+                  <span className="font-semibold text-gray-900">{session?.user?.name || "User"}</span>
+                  <span>👋</span>
                 </div>
               </div>
             </div>
             
-            <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-4">
               <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2" style={{ color: '#acaca9' }} />
+                <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                 <input
                   type="text"
-                  placeholder="Search notes..."
+                  placeholder="Search notes, transcripts..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 pr-4 py-2 border w-72 text-sm bg-white"
-                  style={{ 
-                    borderColor: '#acaca9', 
-                    color: '#333328',
-                    '--tw-ring-color': '#fa6147'
-                  }}
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-80"
                 />
               </div>
               <button 
                 onClick={() => setShowCreateModal(true)}
-                className="px-4 py-2 text-sm font-normal transition-colors"
-                style={{ 
-                  backgroundColor: '#fa6147',
-                  color: '#e5e5df'
-                }}
-                onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = '#e5533a'}
-                onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = '#fa6147'}
+                className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all"
               >
-                New Note
+                <Plus className="w-4 h-4" />
+                <span>New Note</span>
               </button>
             </div>
           </div>
@@ -354,46 +394,59 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-12">
-        {/* Stats Grid - Exact Sunrise Robotics style */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-0 mb-20 border" style={{ borderColor: '#acaca9' }}>
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <StatCard
             icon={FileText}
             label="Total Notes"
             value={stats.totalNotes}
+            trend="+8 this week"
+            color="bg-blue-500"
           />
           <StatCard
             icon={Clock}
             label="Hours Recorded"
             value={`${stats.totalHours}h`}
+            trend="+2.3h"
+            color="bg-green-500"
           />
           <StatCard
             icon={Zap}
             label="This Week"
             value={stats.thisWeek}
+            trend="+25%"
+            color="bg-purple-500"
           />
           <StatCard
             icon={Sparkles}
             label="AI Accuracy"
             value={`${stats.transcriptionAccuracy}%`}
+            color="bg-amber-500"
           />
         </div>
 
-        {/* Content Header */}
-        <div className="flex items-center justify-between mb-12">
-          <div className="flex items-center space-x-8">
-            <h2 className="text-2xl font-semibold tracking-tight" style={{ color: '#333328' }}>Notes</h2>
-            <div className="flex items-center space-x-4">
+        {/* Filters & Views */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-4">
+            <h2 className="text-xl font-semibold text-gray-900">Recent Notes</h2>
+            <div className="flex items-center space-x-2">
               <select 
                 value={selectedFilter}
                 onChange={(e) => setSelectedFilter(e.target.value)}
-                className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 bg-white shadow-sm"
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">All Types</option>
-                <option value="audio">Audio</option>
-                <option value="video">Video</option>
-                <option value="text">Text</option>
+                <option value="audio">Audio Only</option>
+                <option value="video">Video Only</option>
+                <option value="text">Text Only</option>
+                <option value="action">With Actions</option>
               </select>
+              <button className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                <Calendar className="w-4 h-4" />
+                <span className="text-sm">This Week</span>
+                <ChevronDown className="w-4 h-4" />
+              </button>
             </div>
           </div>
           
@@ -401,18 +454,18 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
             <button
               onClick={() => setViewMode('grid')}
               className={`p-2 rounded-lg transition-colors ${
-                viewMode === 'grid' ? 'bg-brand-500 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'
+                viewMode === 'grid' ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'
               }`}
             >
-              <Grid className="w-4 h-4" />
+              <Grid className="w-5 h-5" />
             </button>
             <button
               onClick={() => setViewMode('list')}
               className={`p-2 rounded-lg transition-colors ${
-                viewMode === 'list' ? 'bg-brand-500 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'
+                viewMode === 'list' ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'
               }`}
             >
-              <List className="w-4 h-4" />
+              <List className="w-5 h-5" />
             </button>
           </div>
         </div>
@@ -457,21 +510,18 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
         )}
       </main>
 
-      {/* Create Note Modal - Exact Sunrise Robotics colors */}
+      {/* Create Note Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ backgroundColor: 'rgba(51, 51, 40, 0.2)' }}>
-          <div className="bg-white border max-w-2xl w-full max-h-[90vh] overflow-y-auto" style={{ borderColor: '#acaca9' }}>
-            <div className="p-6 border-b" style={{ borderColor: '#acaca9' }}>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold" style={{ color: '#333328' }}>Create Note</h2>
+                <h2 className="text-xl font-semibold text-gray-900">Create New Note</h2>
                 <button 
                   onClick={() => setShowCreateModal(false)}
-                  className="p-2 transition-colors"
-                  style={{ color: '#545268' }}
-                  onMouseEnter={(e) => (e.target as HTMLElement).style.color = '#333328'}
-                  onMouseLeave={(e) => (e.target as HTMLElement).style.color = '#545268'}
+                  className="text-gray-500 hover:text-gray-700"
                 >
-                  <X className="w-5 h-5" />
+                  ×
                 </button>
               </div>
             </div>
@@ -479,8 +529,8 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
               {/* Title Field */}
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: '#333328' }}>
-                  Title
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Title <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -488,29 +538,25 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
                   value={formData.title}
                   onChange={handleInputChange}
                   required
-                  placeholder="Meeting notes, project ideas..."
-                  className="w-full px-4 py-3 border bg-white transition-all"
-                  style={{ 
-                    borderColor: '#acaca9',
-                    color: '#333328'
-                  }}
+                  placeholder="e.g., Meeting with Product Team"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-black focus:border-transparent transition-all text-sm"
                 />
               </div>
 
               {/* Type Selection */}
               <div>
-                <label className="block text-sm font-medium mb-3" style={{ color: '#333328' }}>
-                  Type
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Note Type
                 </label>
-                <div className="flex space-x-6">
+                <div className="flex space-x-4">
                   {[
-                    { value: "text", label: "Text", icon: FileText },
-                    { value: "audio", label: "Audio", icon: Mic },
-                    { value: "video", label: "Video", icon: Video },
+                    { value: "text", label: "Text Note", icon: FileText },
+                    { value: "audio", label: "Voice Note", icon: Mic },
+                    { value: "video", label: "Video Note", icon: Video },
                   ].map((type) => (
                     <label
                       key={type.value}
-                      className="flex items-center space-x-3 cursor-pointer group"
+                      className="flex items-center space-x-2 cursor-pointer"
                     >
                       <input
                         type="radio"
@@ -518,11 +564,10 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
                         value={type.value}
                         checked={formData.type === type.value}
                         onChange={handleInputChange}
-                        className="w-4 h-4"
-                        style={{ accentColor: '#fa6147' }}
+                        className="w-4 h-4 text-black border-gray-300 focus:ring-black"
                       />
-                      <type.icon className="w-5 h-5 group-hover:opacity-80 transition-opacity" style={{ color: '#545268' }} />
-                      <span className="text-sm font-medium group-hover:opacity-80 transition-opacity" style={{ color: '#545268' }}>{type.label}</span>
+                      <type.icon className="w-4 h-4" />
+                      <span className="text-sm text-gray-700">{type.label}</span>
                     </label>
                   ))}
                 </div>
@@ -530,8 +575,8 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
 
               {/* Audio Recording */}
               {formData.type === "audio" && (
-                <div className="bg-neutral-50 border border-neutral-200 p-6">
-                  <h3 className="text-sm font-medium text-neutral-800 mb-4">Audio Recording</h3>
+                <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                  <h3 className="text-sm font-medium text-gray-700 mb-4">Voice Recording</h3>
                   
                   <div className="space-y-4">
                     <div className="flex items-center space-x-3">
@@ -539,10 +584,10 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
                         <button
                           type="button"
                           onClick={startRecording}
-                          className="flex items-center space-x-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors"
+                          className="flex items-center space-x-2 px-4 py-2 bg-black text-white text-sm font-medium rounded-md hover:bg-gray-800 transition-colors"
                         >
-                          <div className="w-2 h-2 bg-red-400 rounded-full"></div>
-                          <span>Record</span>
+                          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                          <span>Start Recording</span>
                         </button>
                       )}
 
@@ -551,11 +596,11 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
                           <button
                             type="button"
                             onClick={stopRecording}
-                            className="px-4 py-2 bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition-colors"
+                            className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition-colors"
                           >
-                            Stop
+                            Stop Recording
                           </button>
-                          <div className="flex items-center space-x-2 text-sm text-neutral-600">
+                          <div className="flex items-center space-x-2 text-sm text-gray-600">
                             <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
                             <span>Recording...</span>
                           </div>
@@ -568,15 +613,15 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                             </svg>
-                            <span>Recorded</span>
+                            <span>Recording captured</span>
                           </div>
                           <button
-                              type="button"
+                            type="button"
                             onClick={() => {
                               setAudioBlob(null);
                               setFormData(prev => ({ ...prev, transcript: "", summary: "" }));
                             }}
-                            className="text-sm text-neutral-500 hover:text-neutral-700"
+                            className="text-sm text-gray-500 hover:text-gray-700"
                           >
                             Clear
                           </button>
@@ -584,7 +629,7 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
                             type="button"
                             onClick={() => transcribeAudio(audioBlob)}
                             disabled={isTranscribing}
-                            className="px-3 py-1 bg-neutral-700 text-white text-sm hover:bg-neutral-600 disabled:bg-neutral-400"
+                            className="px-3 py-1 bg-black text-white text-sm rounded-md hover:bg-gray-800 disabled:bg-gray-400"
                           >
                             {isTranscribing ? "Transcribing..." : "Transcribe"}
                           </button>
@@ -603,16 +648,16 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="w-full px-4 py-3 border border-dashed border-neutral-300 text-sm text-neutral-600 hover:border-neutral-400 hover:text-neutral-700 transition-colors"
+                        className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-md text-sm text-gray-600 hover:border-gray-400 hover:text-gray-700 transition-colors"
                       >
-                        Upload audio file (MP3, WAV, M4A)
+                        Or upload an audio file (MP3, WAV, M4A)
                       </button>
                     </div>
 
                     {isTranscribing && (
-                      <div className="flex items-center space-x-2 text-sm text-neutral-600">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-neutral-600"></div>
-                        <span>Transcribing...</span>
+                      <div className="flex items-center space-x-2 text-sm text-blue-600">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                        <span>Transcribing audio...</span>
                       </div>
                     )}
                   </div>
@@ -621,8 +666,8 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
 
               {/* Video Recording */}
               {formData.type === "video" && (
-                <div className="bg-gray-50 rounded-sm p-6 border border-gray-100">
-                  <h3 className="text-sm font-medium text-neutral-800 mb-4">Video Recording</h3>
+                <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                  <h3 className="text-sm font-medium text-gray-700 mb-4">Video Recording</h3>
                   
                   <div className="space-y-4">
                     <div className="flex items-center space-x-3">
@@ -630,10 +675,10 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
                         <button
                           type="button"
                           onClick={startRecording}
-                          className="flex items-center space-x-2 px-4 py-2 bg-neutral-700 text-white text-sm font-medium hover:bg-neutral-600 transition-colors"
+                          className="flex items-center space-x-2 px-4 py-2 bg-black text-white text-sm font-medium rounded-md hover:bg-gray-800 transition-colors"
                         >
                           <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                          <span>Record Video</span>
+                          <span>Start Video Recording</span>
                         </button>
                       )}
 
@@ -642,9 +687,9 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
                           <button
                             type="button"
                             onClick={stopRecording}
-                            className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-sm hover:bg-red-700 transition-colors"
+                            className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition-colors"
                           >
-                            Stop
+                            Stop Recording
                           </button>
                           <div className="flex items-center space-x-2 text-sm text-gray-600">
                             <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
@@ -659,7 +704,7 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                             </svg>
-                            <span>Video recorded</span>
+                            <span>Video captured</span>
                           </div>
                           <button
                             type="button"
@@ -675,9 +720,9 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
                             type="button"
                             onClick={() => transcribeAudio(audioBlob)}
                             disabled={isTranscribing}
-                            className="px-3 py-1 bg-neutral-700 text-white text-sm hover:bg-neutral-600 disabled:bg-neutral-400"
+                            className="px-3 py-1 bg-black text-white text-sm rounded-md hover:bg-gray-800 disabled:bg-gray-400"
                           >
-                            {isTranscribing ? "Transcribing..." : "Transcribe"}
+                            {isTranscribing ? "Transcribing..." : "Transcribe Video"}
                           </button>
                         </div>
                       )}
@@ -694,16 +739,16 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="w-full px-4 py-3 border border-dashed border-gray-300 rounded-sm text-sm text-gray-600 hover:border-gray-400 hover:text-gray-700 transition-colors"
+                        className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-md text-sm text-gray-600 hover:border-gray-400 hover:text-gray-700 transition-colors"
                       >
-                        Upload video file (MP4, MOV, AVI)
+                        Or upload a video file (MP4, MOV, AVI)
                       </button>
                     </div>
 
                     {isTranscribing && (
-                      <div className="flex items-center space-x-2 text-sm text-gray-600">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
-                        <span>Extracting and transcribing audio...</span>
+                      <div className="flex items-center space-x-2 text-sm text-blue-600">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                        <span>Extracting and transcribing audio from video...</span>
                       </div>
                     )}
                   </div>
@@ -712,8 +757,8 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
 
               {/* Content Field */}
               <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Content
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Content <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   name="transcript"
@@ -722,13 +767,13 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
                   required
                   rows={6}
                   placeholder="Enter your note content or record audio/video above"
-                  className="w-full px-3 py-2 border border-gray-200 rounded-sm text-black placeholder:text-gray-400 focus:ring-1 focus:ring-black focus:border-black transition-all text-sm resize-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-black focus:border-transparent transition-all text-sm resize-none"
                 />
               </div>
 
               {/* Summary Field */}
               <div>
-                <label className="block text-sm font-medium text-black mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Summary
                 </label>
                 <textarea
@@ -736,27 +781,27 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
                   value={formData.summary}
                   onChange={handleInputChange}
                   rows={3}
-                  placeholder="Optional summary"
-                  className="w-full px-3 py-2 border border-gray-200 rounded-sm text-black placeholder:text-gray-400 focus:ring-1 focus:ring-black focus:border-black transition-all text-sm resize-none"
+                  placeholder="Optional summary (auto-generated for voice/video notes)"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-black focus:border-transparent transition-all text-sm resize-none"
                 />
               </div>
 
               {/* Tags */}
               <div>
-                <label className="block text-sm font-medium text-black mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Tags
                 </label>
                 <div className="flex flex-wrap gap-2 mb-2">
                   {formData.tags.map((tag, index) => (
                     <span
                       key={index}
-                      className="inline-flex items-center px-2 py-1 rounded-sm text-xs font-medium bg-gray-100 text-gray-700"
+                      className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
                     >
-                      {typeof tag === 'string' ? tag : (tag as { name: string }).name}
+                      {tag}
                       <button
                         type="button"
                         onClick={() => removeTag(index)}
-                        className="ml-2 text-gray-500 hover:text-gray-700"
+                        className="ml-2 text-blue-600 hover:text-blue-800"
                       >
                         ×
                       </button>
@@ -769,13 +814,13 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
                     value={newTag}
                     onChange={(e) => setNewTag(e.target.value)}
                     onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
-                    placeholder="Add tag"
-                    className="flex-1 px-3 py-2 border border-gray-200 rounded-sm text-black placeholder:text-gray-400 focus:ring-1 focus:ring-black focus:border-black transition-all text-sm"
+                    placeholder="Add a tag"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-black focus:border-transparent transition-all text-sm"
                   />
                   <button
                     type="button"
                     onClick={addTag}
-                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-sm hover:bg-gray-200 transition-colors text-sm font-medium"
+                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors text-sm font-medium"
                   >
                     Add
                   </button>
@@ -783,17 +828,17 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
               </div>
 
               {/* Submit Button */}
-              <div className="flex justify-end space-x-3 pt-6 border-t border-slate-100">
+              <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-6 py-2 border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors text-sm font-medium"
+                  className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-gradient-to-r from-brand-500 to-brand-600 text-white rounded-lg hover:from-brand-600 hover:to-brand-700 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg"
+                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium"
                 >
                   Create Note
                 </button>
@@ -806,64 +851,43 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
       {/* Note Viewer Modal */}
       {selectedNote && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl">
-            <div className="p-6 border-b border-slate-100">
+          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-xl font-semibold text-slate-900">{selectedNote.title}</h2>
-                  <p className="text-sm text-slate-600 mt-1">
-                    Created: {new Date(selectedNote.created_at).toLocaleDateString()}
-                  </p>
-                </div>
+                <h2 className="text-xl font-semibold text-gray-900">{selectedNote.title}</h2>
                 <button 
                   onClick={() => setSelectedNote(null)}
-                  className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-600"
+                  className="text-gray-500 hover:text-gray-700"
                 >
-                  <X className="w-5 h-5" />
+                  ×
                 </button>
               </div>
             </div>
             
             <div className="p-6">
-              <div className="space-y-6">
-                {selectedNote.transcript && (
-                  <div className="bg-slate-50 rounded-lg p-6 border border-slate-100">
-                    <h3 className="text-sm font-semibold text-slate-900 mb-3">Transcript</h3>
-                    <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{selectedNote.transcript}</p>
-                  </div>
-                )}
+              <div className="prose max-w-none">
+                <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">Transcript</h3>
+                  <p className="text-gray-900 whitespace-pre-wrap">{selectedNote.transcript}</p>
+                </div>
                 
                 {selectedNote.summary && (
-                  <div className="bg-brand-50 rounded-lg p-6 border border-brand-100">
-                    <h3 className="text-sm font-semibold text-brand-900 mb-3">Summary</h3>
-                    <p className="text-sm text-brand-800 leading-relaxed">{selectedNote.summary}</p>
-                  </div>
-                )}
-                
-                {(selectedNote.file_url || selectedNote.media_url) && (
-                  <div className="bg-purple-50 rounded-lg p-6 border border-purple-100">
-                    <h3 className="text-sm font-semibold text-purple-900 mb-3">
-                      {selectedNote.type === 'video' ? 'Video' : 'Audio'} File
-                    </h3>
-                    <p className="text-sm text-purple-700">
-                      File: {selectedNote.file_url || selectedNote.media_url}
-                    </p>
+                  <div className="bg-blue-50 rounded-lg p-4 mb-6">
+                    <h3 className="text-sm font-medium text-blue-900 mb-2">Summary</h3>
+                    <p className="text-blue-800">{selectedNote.summary}</p>
                   </div>
                 )}
                 
                 {selectedNote.tags && selectedNote.tags.length > 0 && (
-                  <div>
-                    <h3 className="text-sm font-semibold text-slate-900 mb-3">Tags</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedNote.tags.map((tag, index) => (
-                        <span 
-                          key={index}
-                          className="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-sm border border-slate-200 font-medium"
-                        >
-                          {typeof tag === 'string' ? tag : (tag as { name: string }).name}
-                        </span>
-                      ))}
-                    </div>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedNote.tags.map((tag, index) => (
+                      <span 
+                        key={index}
+                        className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm"
+                      >
+                        #{tag}
+                      </span>
+                    ))}
                   </div>
                 )}
               </div>

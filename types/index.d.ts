@@ -9,4 +9,5 @@ export interface Note {
   transcript?: string;
   summary?: string;
   media_url?: string;
+  tags?: (string | { name: string })[];
 }
