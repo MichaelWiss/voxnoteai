@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
-import OpenAI from "openai";
+//import OpenAI from "openai";
 
 // Initialize OpenAI client
 const openai = new OpenAI({
