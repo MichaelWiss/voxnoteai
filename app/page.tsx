@@ -1,103 +1,204 @@
-import Image from "next/image";
+"use client";
+
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { Mic, Video, FileText, Sparkles, Zap, Clock } from 'lucide-react';
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const { data: session } = useSession();
+  const router = useRouter();
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const handleGetStarted = () => {
+    if (session) {
+      router.push('/dashboard');
+    } else {
+      router.push('/api/auth/signin');
+    }
+  };
+
+  const handleCreateNote = () => {
+    if (session) {
+      router.push('/dashboard?create=true');
+    } else {
+      router.push('/api/auth/signin');
+    }
+  };
+
+  return (
+    <div className="min-h-screen landing-page" style={{ backgroundColor: '#e5e5df' }}>
+      {/* Hero Section */}
+      <div className="relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-24">
+          <div className="text-center">
+            <h1 className="text-5xl sm:text-6xl font-bold mb-6" style={{ color: '#333328' }}>
+              VoxNote AI
+            </h1>
+            <p className="text-xl sm:text-2xl mb-4" style={{ color: '#545268' }}>
+              Voice notes and transcriptions made easy
+            </p>
+            <p className="text-lg mb-12 max-w-2xl mx-auto" style={{ color: '#545268' }}>
+              Record, transcribe, and organize your thoughts with AI-powered voice notes. 
+              Perfect for meetings, ideas, and quick captures.
+            </p>
+            
+            <div className="flex gap-4 items-center justify-center flex-col sm:flex-row">
+              <button
+                onClick={handleGetStarted}
+                className="px-8 py-4 font-semibold transition-all hover:opacity-90 text-lg"
+                style={{ backgroundColor: '#fa6147', color: '#e5e5df' }}
+              >
+                {session ? 'Go to Dashboard' : 'Get Started'}
+              </button>
+              <button
+                onClick={handleCreateNote}
+                className="px-8 py-4 font-semibold border-2 transition-all hover:opacity-90 text-lg"
+                style={{ 
+                  borderColor: '#fa6147', 
+                  color: '#fa6147', 
+                  backgroundColor: 'transparent' 
+                }}
+              >
+                {session ? 'Create Note' : 'Try Demo'}
+              </button>
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
+
+      {/* Features Grid */}
+      <div className="py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4" style={{ color: '#333328' }}>
+              Powerful Features
+            </h2>
+            <p className="text-lg" style={{ color: '#545268' }}>
+              Everything you need to capture and organize your voice notes
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border-l border-t" style={{ borderColor: '#acaca9' }}>
+            <FeatureCard
+              icon={Mic}
+              title="Voice Recording"
+              description="High-quality audio recording with real-time feedback and easy controls."
+            />
+            <FeatureCard
+              icon={Video}
+              title="Video Notes"
+              description="Record video notes with synchronized audio transcription for complete capture."
+            />
+            <FeatureCard
+              icon={Sparkles}
+              title="AI Transcription"
+              description="Powered by OpenAI Whisper for accurate, fast transcription in multiple languages."
+            />
+            <FeatureCard
+              icon={FileText}
+              title="Smart Organization"
+              description="Tag and categorize your notes with intelligent search and filtering."
+            />
+            <FeatureCard
+              icon={Zap}
+              title="Instant Access"
+              description="Quick capture from anywhere with smart navigation and seamless syncing."
+            />
+            <FeatureCard
+              icon={Clock}
+              title="Time Stamped"
+              description="Every note is timestamped and searchable with full context preservation."
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Stats Section */}
+      <div className="py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 border-l border-t" style={{ borderColor: '#acaca9' }}>
+            <StatCard
+              label="Transcription Accuracy"
+              value="99%+"
+              description="AI-powered accuracy"
+            />
+            <StatCard
+              label="Processing Speed"
+              value="< 10s"
+              description="Average transcription time"
+            />
+            <StatCard
+              label="Supported Formats"
+              value="Audio & Video"
+              description="Multiple file types"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* CTA Section */}
+      <div className="py-24">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-6" style={{ color: '#333328' }}>
+            Ready to get started?
+          </h2>
+          <p className="text-lg mb-8" style={{ color: '#545268' }}>
+            Join thousands of users who trust VoxNote AI for their voice note needs.
+          </p>
+          <button
+            onClick={handleGetStarted}
+            className="px-10 py-4 font-semibold transition-all hover:opacity-90 text-xl"
+            style={{ backgroundColor: '#fa6147', color: '#e5e5df' }}
+          >
+            {session ? 'Open Dashboard' : 'Start Recording'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FeatureCard({ 
+  icon: Icon, 
+  title, 
+  description 
+}: { 
+  icon: React.ElementType; 
+  title: string; 
+  description: string; 
+}) {
+  return (
+    <div className="bg-white border-r border-b p-8 hover:opacity-90 transition-opacity" style={{ borderColor: '#acaca9' }}>
+      <div className="mb-6">
+        <div className="w-12 h-12 flex items-center justify-center mb-4" style={{ backgroundColor: '#333328' }}>
+          <Icon className="w-6 h-6" style={{ color: '#e5e5df' }} />
+        </div>
+        <h3 className="text-xl font-semibold mb-3" style={{ color: '#333328' }}>
+          {title}
+        </h3>
+        <p className="text-base leading-relaxed" style={{ color: '#545268' }}>
+          {description}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function StatCard({ 
+  label, 
+  value, 
+  description 
+}: { 
+  label: string; 
+  value: string; 
+  description: string; 
+}) {
+  return (
+    <div className="bg-white border-r border-b p-8 text-center hover:opacity-90 transition-opacity" style={{ borderColor: '#acaca9' }}>
+      <div className="mb-2">
+        <p className="text-4xl font-bold mb-2" style={{ color: '#fa6147' }}>{value}</p>
+        <p className="text-lg font-medium mb-1" style={{ color: '#333328' }}>{label}</p>
+        <p className="text-sm" style={{ color: '#545268' }}>{description}</p>
+      </div>
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useDashboard } from "../../contexts/DashboardContext";
 import { 
@@ -49,7 +49,19 @@ interface Note {
 }
 
 export default function ModernDashboard() {
-  return <DashboardContent />;
+  return (
+    <Suspense fallback={<DashboardLoading />}>
+      <DashboardContent />
+    </Suspense>
+  );
+}
+
+function DashboardLoading() {
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="w-8 h-8 border-2 border-gray-300 border-t-black animate-spin"></div>
+    </div>
+  );
 }
 
 function DashboardContent() {
@@ -399,7 +411,7 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
               <select 
                 value={selectedFilter}
                 onChange={(e) => setSelectedFilter(e.target.value)}
-                className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 bg-white shadow-sm"
+                className="border border-slate-200 px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 bg-white shadow-sm"
               >
                 <option value="all">All Types</option>
                 <option value="audio">Audio</option>
@@ -412,7 +424,7 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setViewMode('grid')}
-              className={`p-2 rounded-lg transition-colors ${
+              className={`p-2 transition-colors ${
                 viewMode === 'grid' ? 'bg-brand-500 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'
               }`}
             >
@@ -420,7 +432,7 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`p-2 rounded-lg transition-colors ${
+              className={`p-2 transition-colors ${
                 viewMode === 'list' ? 'bg-brand-500 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'
               }`}
             >
@@ -452,7 +464,7 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
             <p className="text-gray-600 mb-6">Create your first note to get started</p>
             <button 
               onClick={() => setShowCreateModal(true)}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-6 py-3 bg-blue-600 text-white hover:bg-blue-700 transition-colors"
             >
               Create First Note
             </button>
@@ -462,7 +474,7 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
         {/* Load More */}
         {notes.length > 0 && (
           <div className="text-center mt-8">
-            <button className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+            <button className="px-6 py-3 border border-gray-300 hover:bg-gray-50 transition-colors">
               Load More Notes
             </button>
           </div>
@@ -799,13 +811,13 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
                 <button
                   type="button"
                   onClick={() => closeCreateModal()}
-                  className="px-6 py-2 border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors text-sm font-medium"
+                  className="px-6 py-2 border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors text-sm font-medium"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-gradient-to-r from-brand-500 to-brand-600 text-white rounded-lg hover:from-brand-600 hover:to-brand-700 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg"
+                  className="px-6 py-2 bg-gradient-to-r from-brand-500 to-brand-600 text-white hover:from-brand-600 hover:to-brand-700 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg"
                 >
                   Create Note
                 </button>
@@ -829,7 +841,7 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
                 </div>
                 <button 
                   onClick={() => setSelectedNote(null)}
-                  className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-600"
+                  className="p-2 hover:bg-slate-100 transition-colors text-slate-600"
                 >
                   <X className="w-5 h-5" />
                 </button>
