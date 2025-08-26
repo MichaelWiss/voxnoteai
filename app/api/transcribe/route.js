@@ -28,17 +28,17 @@ export async function POST(request) {
 
     // Get the form data from the request
     const formData = await request.formData();
-    const audioFile = formData.get("file");
+    const mediaFile = formData.get("file");
 
-    if (!audioFile) {
-      return NextResponse.json({ error: "No audio file provided" }, { status: 400 });
+    if (!mediaFile) {
+      return NextResponse.json({ error: "No video or audio file provided" }, { status: 400 });
     }
 
     // Convert File object to Buffer
-    const buffer = Buffer.from(await audioFile.arrayBuffer());
+    const buffer = Buffer.from(await mediaFile.arrayBuffer());
 
     // Create a Blob from the buffer
-    const blob = new Blob([buffer], { type: audioFile.type });
+    const blob = new Blob([buffer], { type: mediaFile.type });
 
     // Send to OpenAI for transcription
     const transcription = await openai.audio.transcriptions.create({
