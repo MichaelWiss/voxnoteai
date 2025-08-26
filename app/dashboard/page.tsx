@@ -3,10 +3,10 @@
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
+import { useDashboard } from "../../contexts/DashboardContext";
 import { 
   Mic, 
   Video, 
-  Search, 
   Clock, 
   FileText, 
   Volume2,
@@ -20,25 +20,27 @@ import {
 
 interface Note {
   id: string;
-  title: string;
-  type: "text" | "audio" | "video";
-  transcript: string;
-  summary?: string;
-  tags: (string | { name: string })[];
   created_at: string;
-  duration?: string;
-  aiConfidence?: number;
-  hasAction?: boolean;
+  updated_at: string;
+  user_id: string;
+  title: string;
+  type?: string;
   file_url?: string;
+  transcript?: string;
+  summary?: string;
   media_url?: string;
+  tags?: string[];
 }
 
 export default function ModernDashboard() {
+  return <DashboardContent />;
+}
+
+function DashboardContent() {
   const { data: session, status } = useSession();
+  const { searchQuery, showCreateModal, setShowCreateModal } = useDashboard();
   const [viewMode, setViewMode] = useState('grid');
   const [selectedFilter, setSelectedFilter] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showCreateModal, setShowCreateModal] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     type: "text" as "text" | "audio" | "video",
@@ -76,12 +78,7 @@ export default function ModernDashboard() {
       const response = await fetch("/api/notes");
       if (response.ok) {
         const data = await response.json();
-        setNotes(data.map((note: Note) => ({
-          ...note,
-          duration: "5:30", // Mock duration
-          aiConfidence: Math.floor(Math.random() * 10) + 90, // Mock confidence
-          hasAction: Math.random() > 0.6, // Mock action items
-        })));
+        setNotes(data);
       }
     } catch (error) {
       console.error("Error fetching notes:", error);
@@ -198,21 +195,50 @@ export default function ModernDashboard() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!session?.user?.id) {
+      console.error("No user session found or user ID missing");
+      return;
+    }
+    
     try {
+      const noteData = {
+        ...formData,
+        user_id: session.user.id, // Use UUID from session, not email
+      };
+      
+      console.log("Sending note data:", noteData); // Debug log
+      
       const response = await fetch("/api/notes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(noteData),
       });
 
+      console.log("Response status:", response.status); // Debug log
+
       if (response.ok) {
+        const responseData = await response.json();
+        console.log("Note created successfully:", responseData);
         setFormData({ title: "", type: "text", transcript: "", summary: "", tags: [] });
+        setNewTag("");
         setAudioBlob(null);
         setShowCreateModal(false);
         fetchNotes();
+      } else {
+        const errorText = await response.text();
+        console.error("Error response status:", response.status);
+        console.error("Error response text:", errorText);
+        
+        try {
+          const errorData = JSON.parse(errorText);
+          console.error("Error creating note (parsed):", errorData);
+        } catch (parseError) {
+          console.error("Could not parse error response as JSON:", parseError);
+          console.error("Raw error response:", errorText);
+        }
       }
     } catch (error) {
-      console.error("Error creating note:", error);
+      console.error("Network or other error creating note:", error);
     }
   };
 
@@ -243,7 +269,7 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
               <h3 className="font-normal group-hover:opacity-80 transition-opacity" style={{ color: '#333328' }}>{note.title}</h3>
               <div className="flex items-center space-x-2 text-xs mt-1" style={{ color: '#545268' }}>
                 <Clock className="w-3 h-3" />
-                <span>{note.duration || "5:30"}</span>
+                <span>5:30</span>
                 <span>•</span>
                 <span>{new Date(note.created_at).toLocaleDateString()}</span>
               </div>
@@ -260,7 +286,7 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
         {/* Content Preview */}
         <div className="mb-6">
           <p className="text-sm leading-relaxed line-clamp-2" style={{ color: '#545268' }}>
-            {note.summary || note.transcript.substring(0, 120) + (note.transcript.length > 120 ? "..." : "")}
+            {note.summary || (note.transcript ? note.transcript.substring(0, 120) + (note.transcript.length > 120 ? "..." : "") : "")}
           </p>
         </div>
 
@@ -272,7 +298,7 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
                 key={index}
                 className="px-2 py-1 bg-neutral-100 text-neutral-600 text-xs font-normal"
               >
-                {typeof tag === 'string' ? tag : tag.name}
+                {tag}
               </span>
             ))}
             {note.tags.length > 3 && (
@@ -293,7 +319,7 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
           </button>
           <div className="flex items-center space-x-1 text-neutral-400">
             <Eye className="w-3 h-3" />
-            <span className="text-xs">{note.transcript.split(' ').length} words</span>
+            <span className="text-xs">{note.transcript ? note.transcript.split(' ').length : 0} words</span>
           </div>
         </div>
       </div>
@@ -302,57 +328,6 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#e5e5df' }}>
-      {/* Header - Exact Sunrise Robotics style */}
-      <header className="bg-white border-b" style={{ borderColor: '#acaca9' }}>
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-8">
-              <div className="flex items-center space-x-3">
-                <div className="w-6 h-6 flex items-center justify-center" style={{ backgroundColor: '#333328' }}>
-                  <Mic className="w-4 h-4" style={{ color: '#e5e5df' }} />
-                </div>
-                <h1 className="text-xl font-normal tracking-normal" style={{ color: '#333328' }}>VoxNote</h1>
-              </div>
-              <div className="hidden md:block">
-                <div className="text-sm font-normal" style={{ color: '#545268' }}>
-                  Welcome back, <span style={{ color: '#333328' }}>{session?.user?.name || "User"}</span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-6">
-              <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2" style={{ color: '#acaca9' }} />
-                <input
-                  type="text"
-                  placeholder="Search notes..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 pr-4 py-2 border w-72 text-sm bg-white"
-                  style={{ 
-                    borderColor: '#acaca9', 
-                    color: '#333328',
-                    '--tw-ring-color': '#fa6147'
-                  }}
-                />
-              </div>
-              <button 
-                onClick={() => setShowCreateModal(true)}
-                className="px-4 py-2 text-sm font-normal transition-colors"
-                style={{ 
-                  backgroundColor: '#fa6147',
-                  color: '#e5e5df'
-                }}
-                onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = '#e5533a'}
-                onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = '#fa6147'}
-              >
-                New Note
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 py-12">
         {/* Stats Grid - Exact Sunrise Robotics style */}
@@ -426,7 +401,7 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
             .filter(note => 
               searchQuery === '' || 
               note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              note.transcript.toLowerCase().includes(searchQuery.toLowerCase())
+              note.transcript?.toLowerCase().includes(searchQuery.toLowerCase())
             )
             .map(note => (
               <NoteCard key={note.id} note={note} />
@@ -752,7 +727,7 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
                       key={index}
                       className="inline-flex items-center px-2 py-1 rounded-sm text-xs font-medium bg-gray-100 text-gray-700"
                     >
-                      {typeof tag === 'string' ? tag : (tag as { name: string }).name}
+                      {tag}
                       <button
                         type="button"
                         onClick={() => removeTag(index)}
@@ -851,6 +826,17 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
                   </div>
                 )}
                 
+                {(selectedNote.file_url || selectedNote.media_url) && (
+                  <div className="bg-purple-50 rounded-lg p-6 border border-purple-100">
+                    <h3 className="text-sm font-semibold text-purple-900 mb-3">
+                      {selectedNote.type === 'video' ? 'Video' : 'Audio'} File
+                    </h3>
+                    <p className="text-sm text-purple-700">
+                      File: {selectedNote.file_url || selectedNote.media_url}
+                    </p>
+                  </div>
+                )}
+                
                 {selectedNote.tags && selectedNote.tags.length > 0 && (
                   <div>
                     <h3 className="text-sm font-semibold text-slate-900 mb-3">Tags</h3>
@@ -860,7 +846,7 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
                           key={index}
                           className="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-sm border border-slate-200 font-medium"
                         >
-                          {typeof tag === 'string' ? tag : (tag as { name: string }).name}
+                          {tag}
                         </span>
                       ))}
                     </div>
@@ -871,6 +857,6 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
           </div>
         </div>
       )}
-    </div>
+      </div>
   );
 }
