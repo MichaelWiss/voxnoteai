@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useDashboard } from "../../contexts/DashboardContext";
 import { 
   Mic, 
@@ -17,6 +18,21 @@ import {
   Sparkles,
   X
 } from 'lucide-react';
+
+/**
+ * DASHBOARD PAGE - Updated 2025-08-26
+ * 
+ * KEY CHANGES MADE:
+ * 1. Added useSearchParams and useRouter for URL parameter handling
+ * 2. Added auto-modal opening when ?create=true parameter is present
+ * 3. Added closeCreateModal helper to clean up URL parameters
+ * 4. Updated all modal close actions to use new helper function
+ * 
+ * FIXES APPLIED:
+ * - URL parameter detection for cross-page modal opening
+ * - Clean URL parameter removal when modal closes
+ * - Seamless user experience from any page to dashboard modal
+ */
 
 interface Note {
   id: string;
@@ -39,6 +55,8 @@ export default function ModernDashboard() {
 function DashboardContent() {
   const { data: session, status } = useSession();
   const { searchQuery, showCreateModal, setShowCreateModal } = useDashboard();
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [viewMode, setViewMode] = useState('grid');
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [formData, setFormData] = useState({
@@ -72,6 +90,25 @@ function DashboardContent() {
       fetchNotes();
     }
   }, [session]);
+
+  // Check for create parameter and open modal
+  useEffect(() => {
+    if (searchParams.get('create') === 'true') {
+      setShowCreateModal(true);
+    }
+  }, [searchParams, setShowCreateModal]);
+
+  // Helper function to close modal and clean up URL
+  const closeCreateModal = () => {
+    setShowCreateModal(false);
+    // Remove the create parameter from URL if it exists
+    if (searchParams.get('create') === 'true') {
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete('create');
+      const newUrl = newParams.toString() ? `/dashboard?${newParams.toString()}` : '/dashboard';
+      router.replace(newUrl);
+    }
+  };
 
   const fetchNotes = async () => {
     try {
@@ -222,7 +259,7 @@ function DashboardContent() {
         setFormData({ title: "", type: "text", transcript: "", summary: "", tags: [] });
         setNewTag("");
         setAudioBlob(null);
-        setShowCreateModal(false);
+        closeCreateModal();
         fetchNotes();
       } else {
         const errorText = await response.text();
@@ -440,7 +477,7 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold" style={{ color: '#333328' }}>Create Note</h2>
                 <button 
-                  onClick={() => setShowCreateModal(false)}
+                  onClick={() => closeCreateModal()}
                   className="p-2 transition-colors"
                   style={{ color: '#545268' }}
                   onMouseEnter={(e) => (e.target as HTMLElement).style.color = '#333328'}
@@ -761,7 +798,7 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
               <div className="flex justify-end space-x-3 pt-6 border-t border-slate-100">
                 <button
                   type="button"
-                  onClick={() => setShowCreateModal(false)}
+                  onClick={() => closeCreateModal()}
                   className="px-6 py-2 border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors text-sm font-medium"
                 >
                   Cancel
